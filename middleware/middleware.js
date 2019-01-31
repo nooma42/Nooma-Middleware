@@ -1,8 +1,21 @@
 express = require("express");
 var app = express();
+var DB = require('./DBConnectScript.js');
+
 
 var port = 9001;
 
+
+var config = {
+  userName: 'nooma42', // update me
+  password: 'rq4HEe9BGPJ2nQtK', // update me
+  server: 'nooma.database.windows.net',
+  options: {
+	  encrypt: true,
+	   database: 'Nooma'
+  }
+}
+	
 app.get("/", function(request, response) {
 	response.end("Empty response! Cool! :)");
 });
@@ -10,7 +23,8 @@ app.get("/", function(request, response) {
 app.route("/users")
 	//Gets all users 
 	.get(function(request, response) {
-		response.end("Get users!");
+		DB.exec("EXEC GetUser 5");
+		response.end("done");
 	})
 	//create new user
 	.post(function(request, response) {

@@ -13,33 +13,86 @@ var config = {
 
 var connection = new Connection(config);
 
-connection.on('connect', function(err) {
+connection.on('connect', connected);
+connection.on('infoMessage', infoError);
+connection.on('errorMessage', infoError);
+connection.on('end', end);
+connection.on('debug', debug);
+
+function connected(err) {
   if (err) {
     console.log(err);
-  } else {
-    executeStatement();
+    process.exit(1);
   }
-});
 
-function executeStatement() {
-  request = new Request("select * from dbo.users", function(err, rowCount) {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log(rowCount + ' rows');
-    }
-    connection.close();
+  //console.log('connected');
+
+  process.stdin.resume();
+
+  process.stdin.on('data', function (chunk) {
+    exec(chunk);
   });
 
-  request.on('row', function(columns) {
-    columns.forEach(function(column) {
-      if (column.value === null) {
-        console.log('NULL');
-      } else {
-        console.log(column.value);
-      }
-    });
+  process.stdin.on('end', function () {
+    process.exit(0);
   });
+}
+
+function exec(sql) {
+  sql = sql.toString();
+
+  request = new Request(sql, statementComplete)
+  request.on('columnMetadata', columnMetadata);
+    request.on('row', row);
+    request.on('done', requestDone);
 
   connection.execSql(request);
+}
+module.exports = {exec}
+
+function requestDone(rowCount, more, rows) {
+  console.log(rowCount + ' rows');
+  
+}
+
+function statementComplete(err, rowCount) {
+  if (err) {
+    console.log('Statement failed: ' + err);
+  } else {
+    console.log(rowCount + ' rows');
+  }
+}
+
+function end() {
+  console.log('Connection closed');
+  process.exit(0);
+}
+
+function infoError(info) {
+  console.log(info.number + ' : ' + info.message);
+}
+
+function debug(message) {
+  //console.log(message);
+}
+
+function columnMetadata(columnsMetadata) {
+  columnsMetadata.forEach(function(column) {
+    //console.log(column);
+  });
+}
+
+function row(columns) {
+  var values = {};
+
+  columns.forEach(function(column) {
+    if (column.value === null) {
+      value = 'NULL';
+	  values[column.metadata.colName] = "NULL";
+    } else {
+      values[column.metadata.colName] = column.value;
+    }
+  });
+
+  console.log(values);
 }
