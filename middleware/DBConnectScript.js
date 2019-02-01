@@ -8,7 +8,9 @@ var config = {
   options: {
 	  encrypt: true,
 	   database: 'Nooma'
-  }
+  },
+  rowCollectionOnRequestCompletion: true
+
 }
 
 var connection = new Connection(config);
@@ -44,14 +46,16 @@ function exec(sql) {
   request = new Request(sql, statementComplete)
   request.on('columnMetadata', columnMetadata);
     request.on('row', row);
-    request.on('done', requestDone);
+    request.on('doneInProc', requestDone);
 
   connection.execSql(request);
+  return "hello";
 }
 module.exports = {exec}
 
 function requestDone(rowCount, more, rows) {
-  console.log(rowCount + ' rows');
+	
+  console.log( more + ' hello! ' + rowCount + " - " + rows);
   
 }
 
