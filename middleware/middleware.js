@@ -1,75 +1,83 @@
-express = require("express");
-var tediousExpress = require('express4-tedious');
-const bcrypt = require('bcryptjs');
+var express = require("express");
 var bodyParser = require('body-parser');
-var TYPES = require('tedious').TYPES
 var app = express();
 
+const Sequelize = require('sequelize');
+const sequelize = new Sequelize('Nooma', 'nooma42', 'rq4HEe9BGPJ2nQtK', {
+  host: 'nooma.database.windows.net',
+  dialect: 'mssql',
+
+  pool: {
+    max: 5,
+    min: 0,
+    acquire: 30000,
+    idle: 10000
+  },
+  dialectOptions: {
+    encrypt: true
+  },
+  operatorsAliases: false
+});
+
+const bcrypt = require('bcryptjs');
 const saltRounds = 10;
 
 var port = 9001;
 
 app.use(bodyParser.json()); // for parsing application/json
 
-app.use(function (req, res, next) {
-    req.sql = tediousExpress(config);
-    next();
-});
-
-
-var config = {
-  userName: 'nooma42', // update me
-  password: 'rq4HEe9BGPJ2nQtK', // update me
-  server: 'nooma.database.windows.net',
-  options: {
-	  encrypt: true,
-	   database: 'Nooma'
-  }
-}
 	
 app.get("/", function(request, response) {
 	response.end("Empty response! Cool! :)");
 });
 
+app.route("/users/:userId")
+    .get(function(request, response) {
+		var userId = request.params.userId;
+		sequelize.query("EXEC GetUser :userID", {replacements: {userID: userId}}).then(myTableRows => {
+			console.log(myTableRows[0])
+			response.end(JSON.stringify(myTableRows[0]));
+		})
+    })
+	
 app.route("/users")
-	//Gets all users 
-	.get(function(request, response) {
-		response.end("all users here!");
-	})
 	//create new user
 	//{"firstName": "Jeff", "lastName": "Gold", "email": "jgold@email.com", "pwd": "X", "accountType":1}
 	.post(function(request, response) { 
 		//hash password
-		console.log("REQUEST BODY = " + request.body.firstName);
 		var pwd = request.body.pwd;
 		bcrypt.hash(pwd, saltRounds, function(err, hash) {
-			request.sql("EXEC CreateUser @firstName, @lastName, @email, @pwd, @accountType")
-			.param('firstName', request.body.firstName, TYPES.VarChar)
-			.param('lastName', request.body.lastName, TYPES.VarChar)
-			.param('email', request.body.email, TYPES.VarChar)
-			.param('pwd', hash, TYPES.Char)
-			.param('accountType', request.body.accountType, TYPES.Int)
-			.into(response);
-			//.exec(request);
-			
+			sequelize.query("EXEC CreateUser :firstName, :lastName, :email, :pwd, :accountType",
+			{replacements: {
+				firstName: request.body.firstName,
+				lastName: request.body.lastName, 
+				email: request.body.email,
+				pwd: hash,
+				accountType: request.body.accountType
+				}}).then(myTableRows => {
+					console.log(myTableRows[0]);
+				response.end(JSON.stringify(myTableRows[0]));
+			})
 		});
 	})
 
-app.route("/users/:userId")
-	.get(function(request, response) {
-		var userId = request.params.userId;
-		request.sql("EXEC GetUser "+userId)
-		.into(response);
-	})
-
+	
+//for authenticating users passwords
 app.route("/authenticate/:userId")
+	//{"pwd": "X"}
 	.get(function(request, response) {
 		console.log("Authenticating user..");
 		var userId = request.params.userId;
-		request.sql("EXEC GetHash "+userId)
-		.into(response);
+		var pwd = request.body.pwd;
 		
-		response.end(request.body);
+		sequelize.query("EXEC GetHash :userID", {plain: true, replacements: {userID: userId}}).then(myTableRows => {
+			var storedHash = myTableRows.pwd;
+			console.log(storedHash);
+			bcrypt.compare(pwd, storedHash, function(err, res) {
+				console.log(res);
+				response.end(res.toString());
+			});
+		})
 	})
 
 	
