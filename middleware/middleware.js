@@ -65,12 +65,12 @@ app.route("/users")
 //for authenticating users passwords
 app.route("/authenticate")
 	//{"email": "jgold@email.com", "pwd": "X"}
-	.get(function(request, response) {
+	.post(function(request, response) {
 		console.log("Authenticating user..");
 		var email = request.body.email;
 		var pwd = request.body.pwd;
 		
-		sequelize.query("EXEC GetHash :email", {plain: true, replacements: {email: email}}).then(myTableRows => {
+		sequelize.query("EXEC GetHash :Email", {plain: true, replacements: {Email: email}}).then(myTableRows => {
 			var storedHash = myTableRows.pwd;
 			bcrypt.compare(pwd, storedHash, function(err, res) {
 				console.log(res);
