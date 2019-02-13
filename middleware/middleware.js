@@ -1,8 +1,13 @@
-var express = require("express");
 var bodyParser = require('body-parser');
-var app = express();
-
+var app = require('express')();
+var http = require("http").Server(app);
+var io = require("socket.io")(http);
 const Sequelize = require('sequelize');
+const bcrypt = require('bcryptjs');
+
+const saltRounds = 10;
+var port = 9001;
+
 const sequelize = new Sequelize('Nooma', 'nooma42', 'rq4HEe9BGPJ2nQtK', {
   host: 'nooma.database.windows.net',
   dialect: 'mssql',
@@ -19,13 +24,17 @@ const sequelize = new Sequelize('Nooma', 'nooma42', 'rq4HEe9BGPJ2nQtK', {
   operatorsAliases: false
 });
 
-const bcrypt = require('bcryptjs');
-const saltRounds = 10;
-
-var port = 9001;
 
 app.use(bodyParser.json()); // for parsing application/json
 
+
+io.on('connection', function(socket){
+		
+	socket.on('chat', function(msg){
+		console.log('message: ' + msg);
+		socket.broadcast.emit('chat', msg);
+	});
+});
 	
 app.get("/", function(request, response) {
 	response.end("Empty response! Cool! :)");
@@ -79,7 +88,6 @@ app.route("/authenticate")
 		})
 	})
 
-	
-var server = app.listen(port, function() {
-	console.log("Server starting on " + port); 
+http.listen(port,function() {
+	console.log ( " Server listening on port " + port );
 });
