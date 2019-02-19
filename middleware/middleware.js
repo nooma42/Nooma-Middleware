@@ -51,18 +51,17 @@ app.route("/users/:userId")
 	
 app.route("/users")
 	//create new user
-	//{"firstName": "Jeff", "lastName": "Gold", "email": "jgold@email.com", "pwd": "X", "accountType":1}
+	//{"firstName": "Jeff", "lastName": "Gold", "email": "jgold@email.com", "pwd": "X"}
 	.post(function(request, response) { 
 		//hash password
 		var pwd = request.body.pwd;
 		bcrypt.hash(pwd, saltRounds, function(err, hash) {
-			sequelize.query("EXEC CreateUser :firstName, :lastName, :email, :pwd, :accountType",
+			sequelize.query("EXEC CreateUser :firstName, :lastName, :email, :pwd",
 			{replacements: {
 				firstName: request.body.firstName,
 				lastName: request.body.lastName, 
 				email: request.body.email,
-				pwd: hash,
-				accountType: request.body.accountType
+				pwd: hash
 				}}).then(myTableRows => {
 					console.log(myTableRows[0]);
 				response.end(JSON.stringify(myTableRows[0]));
@@ -79,15 +78,42 @@ app.route("/authenticate")
 		var email = request.body.email;
 		var pwd = request.body.pwd;
 		
-		sequelize.query("EXEC GetHash :Email", {plain: true, replacements: {Email: email}}).then(myTableRows => {
+		sequelize.query("EXEC GetHash :Email", { plain: true, replacements: {Email: email}}).then(myTableRows => {
 			var storedHash = myTableRows.pwd;
+
 			bcrypt.compare(pwd, storedHash, function(err, res) {
-				console.log(res);
-				response.end(res.toString());
+				console.log("password response: " + res);
+				if (res == true)
+					response.end(JSON.stringify(myTableRows));
+				else
+					response.end("Error");
 			});
 		})
 	})
 
+//get lecturers list of rooms
+app.route("/rooms/:lecturerId")
+    .get(function(request, response) {
+		var lecturerId = request.params.lecturerId;
+		sequelize.query("EXEC GetRooms :lecturerID", {replacements: {lecturerID: lecturerId}}).then(myTableRows => {
+			console.log(myTableRows[0])
+			response.end(JSON.stringify(myTableRows[0]));
+		})
+    })
+
+//post new room as a lecturer
+app.route("/rooms/:lecturerId")
+    .post(function(request, response) {
+		var lecturerId = request.params.lecturerId;
+		sequelize.query("EXEC GetRooms :lecturerID", {replacements: {lecturerID: lecturerId}}).then(myTableRows => {
+			console.log(myTableRows[0])
+			response.end(JSON.stringify(myTableRows[0]));
+		})
+    })
+	
+		
+	
+	
 http.listen(port,function() {
 	console.log ( " Server listening on port " + port );
 });
