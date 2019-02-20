@@ -91,21 +91,35 @@ app.route("/authenticate")
 		})
 	})
 
+	
+const Project = sequelize.define('project', {
+  lecturerID: {type: Sequelize.INTEGER },
+  search: {type: Sequelize.TEXT, notEmpty: false}
+})	
+
 //get lecturers list of rooms
 app.route("/rooms/:lecturerId")
     .get(function(request, response) {
 		var lecturerId = request.params.lecturerId;
-		sequelize.query("EXEC GetRooms :lecturerID", {replacements: {lecturerID: lecturerId}}).then(myTableRows => {
-			console.log(myTableRows[0])
-			response.end(JSON.stringify(myTableRows[0]));
+		
+		var search = request.query.search;
+		
+		console.log("search text: " + search);
+		sequelize.query("EXEC GetRooms :lecturerID, :searchText", {model: Project, replacements: {lecturerID: lecturerId, searchText: search}}).then(myTableRows => {
+			response.end(JSON.stringify(myTableRows));
 		})
     })
 
 //post new room as a lecturer
 app.route("/rooms/:lecturerId")
     .post(function(request, response) {
+		
 		var lecturerId = request.params.lecturerId;
-		sequelize.query("EXEC GetRooms :lecturerID", {replacements: {lecturerID: lecturerId}}).then(myTableRows => {
+
+		var roomname = request.body.roomName;
+		var eventdate = request.body.eventDate;
+		
+		sequelize.query("EXEC CreateRoom :ownerID, :roomName, :eventDate", {replacements: {ownerID: lecturerId, roomName: roomname, eventDate: eventdate}}).then(myTableRows => {
 			console.log(myTableRows[0])
 			response.end(JSON.stringify(myTableRows[0]));
 		})
