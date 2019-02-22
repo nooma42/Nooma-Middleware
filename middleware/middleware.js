@@ -125,7 +125,15 @@ app.route("/rooms/:lecturerId")
 		})
     })
 	
+app.route("/rooms/:roomId")
+    .delete(function(request, response) {
 		
+		var roomId = request.params.roomId;
+		
+		sequelize.query("EXEC DeleteRoom :roomID", {replacements: {roomID: roomId}}).then(myTableRows => {
+			response.end(JSON.stringify(myTableRows[0]));
+		})
+    })		
 	
 	
 http.listen(port,function() {
