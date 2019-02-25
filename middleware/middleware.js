@@ -135,6 +135,19 @@ app.route("/rooms/:roomId")
 		})
     })		
 	
+app.route("/rooms/:roomId")
+    .put(function(request, response) {
+		
+		var roomId = request.params.roomId;
+		
+		var roomname = request.body.roomName;
+		var eventdate = request.body.eventDate;
+		
+		sequelize.query("EXEC EditRoom :roomID, :roomName, :eventDate", {replacements: {roomID: roomId, roomName: roomname, eventDate: eventdate}}).then(myTableRows => {
+			response.end(JSON.stringify(myTableRows[0]));
+		})
+    })		
+	
 	
 http.listen(port,function() {
 	console.log ( " Server listening on port " + port );
