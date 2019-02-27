@@ -186,7 +186,18 @@ app.route("/channelMessages/:channelId")
 			response.end(JSON.stringify(myTableRows[0]));
 		})
     })		
-
+    .post(function(request, response) {
+		
+		var channelId = request.params.channelId;
+		
+		var userId = request.body.userID;
+		var messagecontent = request.body.messageContent;
+		var senddate = request.body.sendDate;
+		
+		sequelize.query("EXEC CreateMessage :channelID, :userID, :messageContent, :sendDate", {replacements: {channelID: channelId, userID: userId, messageContent: messagecontent, sendDate: senddate}}).then(myTableRows => {
+			response.end(JSON.stringify(myTableRows[0]));
+		})
+    })		
 	
 http.listen(port,function() {
 	console.log ( " Server listening on port " + port );
