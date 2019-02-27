@@ -147,7 +147,46 @@ app.route("/rooms/:roomId")
 			response.end(JSON.stringify(myTableRows[0]));
 		})
     })		
+
+app.route("/channels/:roomId")
+    .get(function(request, response) {
+		
+		var roomId = request.params.roomId;
+		
+		sequelize.query("EXEC GetChannels :roomID", {replacements: {roomID: roomId}}).then(myTableRows => {
+			response.end(JSON.stringify(myTableRows[0]));
+		})
+    })
+	.post(function(request, response) { 
+		var roomId = request.params.roomId;
+		
+		var channelname = request.body.channelName;
+		
+		sequelize.query("EXEC CreateChannel :roomID, :channelName", {replacements: {roomID: roomId,channelName: channelname}}).then(myTableRows => {
+			response.end(JSON.stringify(myTableRows[0]));
+		})		
+	})
+
+app.route("/channel/:channelId")
+	.delete(function(request, response) {
+		
+		var channelId = request.params.channelId;
+		
+		sequelize.query("EXEC DeleteChannel :channelID", {replacements: {channelID: channelId}}).then(myTableRows => {
+			response.end(JSON.stringify(myTableRows[0]));
+		})		
+	})	
 	
+app.route("/channelMessages/:channelId")
+    .get(function(request, response) {
+		
+		var channelId = request.params.channelId;
+		
+		sequelize.query("EXEC GetChannelMessages :channelID", {replacements: {channelID: channelId}}).then(myTableRows => {
+			response.end(JSON.stringify(myTableRows[0]));
+		})
+    })		
+
 	
 http.listen(port,function() {
 	console.log ( " Server listening on port " + port );
