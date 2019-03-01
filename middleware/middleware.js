@@ -34,6 +34,11 @@ io.on('connection', function(socket){
 		console.log('message: ' + msg);
 		socket.broadcast.emit('chat', msg);
 	});
+	socket.on('channel', function(room) {
+		socket.leaveAll(); 
+        socket.join(room);
+    });
+	
 });
 	
 app.get("/", function(request, response) {
@@ -148,6 +153,7 @@ app.route("/rooms/:roomId")
 		})
     })		
 
+//get channels for rooms
 app.route("/channels/:roomId")
     .get(function(request, response) {
 		
@@ -176,7 +182,8 @@ app.route("/channel/:channelId")
 			response.end(JSON.stringify(myTableRows[0]));
 		})		
 	})	
-	
+
+//gets history of messages for a channel	
 app.route("/channelMessages/:channelId")
     .get(function(request, response) {
 		
@@ -185,7 +192,8 @@ app.route("/channelMessages/:channelId")
 		sequelize.query("EXEC GetChannelMessages :channelID", {replacements: {channelID: channelId}}).then(myTableRows => {
 			response.end(JSON.stringify(myTableRows[0]));
 		})
-    })		
+    })
+	//posts a new message to a channel, including the socket 
     .post(function(request, response) {
 		
 		var channelId = request.params.channelId;
@@ -194,7 +202,18 @@ app.route("/channelMessages/:channelId")
 		var messagecontent = request.body.messageContent;
 		var senddate = request.body.sendDate;
 		
+		var msg = {}
+		msg.messageContent = messagecontent;
+		
 		sequelize.query("EXEC CreateMessage :channelID, :userID, :messageContent, :sendDate", {replacements: {channelID: channelId, userID: userId, messageContent: messagecontent, sendDate: senddate}}).then(myTableRows => {
+			msg.username = myTableRows[0][0].username;
+			msg.messageID = myTableRows[0][0].messageID;
+			msg.sendDate = myTableRows[0][0].sendDate;
+			msg.channelID = channelId;
+			
+			console.log("sending: " + senddate);
+			io.sockets.in(msg.channelID).emit('chat', msg);
+		
 			response.end(JSON.stringify(myTableRows[0]));
 		})
     })		
