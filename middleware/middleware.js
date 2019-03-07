@@ -82,8 +82,31 @@ app.route("/authenticate")
 		console.log("Authenticating user..");
 		var email = request.body.email;
 		var pwd = request.body.pwd;
-		
+		console.log(email);
 		sequelize.query("EXEC GetHash :Email", { plain: true, replacements: {Email: email}}).then(myTableRows => {
+			var storedHash = myTableRows.pwd;
+			//hide the password hash on return
+			myTableRows.pwd = "Hidden";
+			
+			bcrypt.compare(pwd, storedHash, function(err, res) {
+				console.log("password response: " + res);
+				if (res == true)
+					response.end(JSON.stringify(myTableRows));
+				else
+					response.end("Error");
+			});
+		})
+	})
+
+
+app.route("/authenticateLecturer")
+	//{"email": "jgold@email.com", "pwd": "X"}
+	.post(function(request, response) {
+		console.log("Authenticating Student user..");
+		var email = request.body.email;
+		var pwd = request.body.pwd;
+		console.log(email);
+		sequelize.query("EXEC GetLecturerHash :Email", { plain: true, replacements: {Email: email}}).then(myTableRows => {
 			var storedHash = myTableRows.pwd;
 
 			bcrypt.compare(pwd, storedHash, function(err, res) {
@@ -153,6 +176,17 @@ app.route("/rooms/:roomId")
 		})
     })		
 
+app.route("/joinRoom")
+    .post(function(request, response) {
+		
+		var userId = request.body.userID;
+		var joincode = request.body.joinCode;
+		
+		sequelize.query("EXEC JoinRoom :userID, :joinCode", {replacements: {userID: userId, joinCode: joincode}}).then(myTableRows => {
+			response.end(JSON.stringify(myTableRows[0]));
+		})
+    })
+	
 //get channels for rooms
 app.route("/channels/:roomId")
     .get(function(request, response) {
