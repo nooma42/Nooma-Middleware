@@ -252,6 +252,15 @@ app.route("/channelMessages/:channelId")
 		})
     })		
 	
+app.route("/studentRooms/:userID")
+    .get(function(request, response) {
+		
+		var userId = request.params.userID;
+		
+		sequelize.query("EXEC GetStudentRooms :userID", {replacements: {userID: userId}}).then(myTableRows => {
+			response.end(JSON.stringify(myTableRows[0]));
+		})
+    })
 http.listen(port,function() {
 	console.log ( " Server listening on port " + port );
 });
