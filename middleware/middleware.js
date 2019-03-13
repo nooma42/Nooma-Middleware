@@ -29,14 +29,15 @@ app.use(bodyParser.json()); // for parsing application/json
 
 
 io.on('connection', function(socket){
-		
+    console.log("***** New Socket Connection!!! *****");
 	socket.on('chat', function(msg){
 		console.log('message: ' + msg);
 		socket.broadcast.emit('chat', msg);
 	});
 	socket.on('channel', function(room) {
+		console.log("channel joining... " + room.channelID);
 		socket.leaveAll(); 
-        socket.join(room);
+        socket.join(room.channelID);
     });
 	
 });
