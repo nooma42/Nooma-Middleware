@@ -1,0 +1,25 @@
+{
+  "name": "middleware",
+  "version": "1.0.0",
+  "description": "Nooma Middleware",
+  "main": "middleware.js",
+  "scripts": {
+	"start": "node middleware.js"
+  },
+  "repository": {
+	"type": "git",
+	"url": ""
+  },
+	
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "sequelize": "^4.42.0",
+    "socket.io": "^2.2.0",
+    "tedious": "^4.1.3"
+  }
+}
