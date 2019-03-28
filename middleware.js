@@ -6,20 +6,26 @@ const Sequelize = require('sequelize');
 const bcrypt = require('bcryptjs');
 
 const saltRounds = 10;
-var port = 9001;
+const port= process.env.PORT || 9001;
 
 const sequelize = new Sequelize('Nooma', 'nooma42', 'rq4HEe9BGPJ2nQtK', {
   host: 'nooma.database.windows.net',
   dialect: 'mssql',
-
+     
+  define: {
+    charset: 'utf8',
+    collate: 'utf8_general_ci'
+  },
+  
   pool: {
     max: 5,
     min: 0,
     acquire: 30000,
     idle: 10000
   },
+  
   dialectOptions: {
-    encrypt: true
+    encrypt: true,
   },
   operatorsAliases: false
 });
@@ -80,6 +86,7 @@ app.route("/users")
 app.route("/authenticate")
 	//{"email": "jgold@email.com", "pwd": "X"}
 	.post(function(request, response) {
+		response.set('Content-Type', 'application/json; charset=utf-8');
 		console.log("Authenticating user..");
 		var email = request.body.email;
 		var pwd = request.body.pwd;
@@ -235,6 +242,7 @@ app.route("/channelMessages/:channelId")
 		
 		var userId = request.body.userID;
 		var messagecontent = request.body.messageContent;
+		
 		var senddate = request.body.sendDate;
 		
 		var msg = {}
@@ -243,10 +251,12 @@ app.route("/channelMessages/:channelId")
 		sequelize.query("EXEC CreateMessage :channelID, :userID, :messageContent, :sendDate", {replacements: {channelID: channelId, userID: userId, messageContent: messagecontent, sendDate: senddate}}).then(myTableRows => {
 			msg.username = myTableRows[0][0].username;
 			msg.messageID = myTableRows[0][0].messageID;
-			msg.sendDate = myTableRows[0][0].sendDate;
+			msg.userID = userId;
+			msg.sendDate = senddate;
 			msg.channelID = channelId;
 			
-			console.log("sending: " + senddate);
+			console.log(messagecontent);
+			console.log("sending: " + senddate + " - " + msg.userID);
 			io.sockets.in(msg.channelID).emit('chat', msg);
 		
 			response.end(JSON.stringify(myTableRows[0]));
