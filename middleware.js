@@ -81,6 +81,25 @@ app.route("/users")
 		});
 	})
 
+app.route("/lecturer")
+	//create new lecturer user
+	//{"firstName": "Jeff", "lastName": "Gold", "email": "jgold@email.com", "pwd": "X"}
+	.post(function(request, response) { 
+		//hash password
+		var pwd = request.body.pwd;
+		bcrypt.hash(pwd, saltRounds, function(err, hash) {
+			sequelize.query("EXEC CreateLecturer :firstName, :lastName, :email, :pwd",
+			{replacements: {
+				firstName: request.body.firstName,
+				lastName: request.body.lastName, 
+				email: request.body.email,
+				pwd: hash
+				}}).then(myTableRows => {
+					console.log(myTableRows[0]);
+				response.end(JSON.stringify(myTableRows[0]));
+			})
+		});
+	})
 	
 //for authenticating users passwords
 app.route("/authenticate")
