@@ -135,7 +135,7 @@ app.route("/authenticateLecturer")
 		console.log(email);
 		sequelize.query("EXEC GetLecturerHash :Email", { plain: true, replacements: {Email: email}}).then(myTableRows => {
 			var storedHash = myTableRows.pwd;
-
+			myTableRows.pwd = "Hidden";
 			bcrypt.compare(pwd, storedHash, function(err, res) {
 				console.log("password response: " + res);
 				if (res == true)
