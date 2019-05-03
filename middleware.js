@@ -280,7 +280,24 @@ app.route("/channelMessages/:channelId")
 		
 			response.end(JSON.stringify(myTableRows[0]));
 		})
-    })		
+    })	
+
+app.route("/channelMessage/:messageId")	
+    .delete(function(request, response) {
+		
+		var messageId = request.params.messageId;
+		
+		sequelize.query("EXEC DeleteChannelMessage :messageID", {replacements: {messageID: messageId}}).then(myTableRows => {
+			response.end(JSON.stringify(myTableRows[0]));
+			
+			var msg = {}
+			msg.channelID = myTableRows[0][0].channelID;
+			msg.messageID = messageId;
+			io.sockets.in(msg.channelID).emit('delete', msg);
+			
+			response.end(JSON.stringify(myTableRows[0]));
+		})
+    })	
 	
 app.route("/studentRooms/:userID")
     .get(function(request, response) {
