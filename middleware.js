@@ -263,11 +263,12 @@ app.route("/channelMessages/:channelId")
 		var messagecontent = request.body.messageContent;
 		
 		var senddate = request.body.sendDate;
-		
+		var isanonymous = request.body.isAnonymous;
+	
 		var msg = {}
 		msg.messageContent = messagecontent;
 		
-		sequelize.query("EXEC CreateMessage :channelID, :userID, :messageContent, :sendDate", {replacements: {channelID: channelId, userID: userId, messageContent: messagecontent, sendDate: senddate}}).then(myTableRows => {
+		sequelize.query("EXEC CreateMessage :channelID, :userID, :messageContent, :sendDate, :isAnonymous", {replacements: {channelID: channelId, userID: userId, messageContent: messagecontent, sendDate: senddate, isAnonymous: isanonymous}}).then(myTableRows => {
 			msg.username = myTableRows[0][0].username;
 			msg.messageID = myTableRows[0][0].messageID;
 			msg.userID = userId;
