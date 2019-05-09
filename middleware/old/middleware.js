@@ -81,6 +81,25 @@ app.route("/users")
 		});
 	})
 
+app.route("/lecturer")
+	//create new lecturer user
+	//{"firstName": "Jeff", "lastName": "Gold", "email": "jgold@email.com", "pwd": "X"}
+	.post(function(request, response) { 
+		//hash password
+		var pwd = request.body.pwd;
+		bcrypt.hash(pwd, saltRounds, function(err, hash) {
+			sequelize.query("EXEC CreateLecturer :firstName, :lastName, :email, :pwd",
+			{replacements: {
+				firstName: request.body.firstName,
+				lastName: request.body.lastName, 
+				email: request.body.email,
+				pwd: hash
+				}}).then(myTableRows => {
+					console.log(myTableRows[0]);
+				response.end(JSON.stringify(myTableRows[0]));
+			})
+		});
+	})
 	
 //for authenticating users passwords
 app.route("/authenticate")
@@ -116,7 +135,7 @@ app.route("/authenticateLecturer")
 		console.log(email);
 		sequelize.query("EXEC GetLecturerHash :Email", { plain: true, replacements: {Email: email}}).then(myTableRows => {
 			var storedHash = myTableRows.pwd;
-
+			myTableRows.pwd = "Hidden";
 			bcrypt.compare(pwd, storedHash, function(err, res) {
 				console.log("password response: " + res);
 				if (res == true)
@@ -244,11 +263,12 @@ app.route("/channelMessages/:channelId")
 		var messagecontent = request.body.messageContent;
 		
 		var senddate = request.body.sendDate;
-		
+		var isanonymous = request.body.isAnonymous;
+	
 		var msg = {}
 		msg.messageContent = messagecontent;
 		
-		sequelize.query("EXEC CreateMessage :channelID, :userID, :messageContent, :sendDate", {replacements: {channelID: channelId, userID: userId, messageContent: messagecontent, sendDate: senddate}}).then(myTableRows => {
+		sequelize.query("EXEC CreateMessage :channelID, :userID, :messageContent, :sendDate, :isAnonymous", {replacements: {channelID: channelId, userID: userId, messageContent: messagecontent, sendDate: senddate, isAnonymous: isanonymous}}).then(myTableRows => {
 			msg.username = myTableRows[0][0].username;
 			msg.messageID = myTableRows[0][0].messageID;
 			msg.userID = userId;
@@ -261,7 +281,24 @@ app.route("/channelMessages/:channelId")
 		
 			response.end(JSON.stringify(myTableRows[0]));
 		})
-    })		
+    })	
+
+app.route("/channelMessage/:messageId")	
+    .delete(function(request, response) {
+		
+		var messageId = request.params.messageId;
+		
+		sequelize.query("EXEC DeleteChannelMessage :messageID", {replacements: {messageID: messageId}}).then(myTableRows => {
+			response.end(JSON.stringify(myTableRows[0]));
+			
+			var msg = {}
+			msg.channelID = myTableRows[0][0].channelID;
+			msg.messageID = messageId;
+			io.sockets.in(msg.channelID).emit('delete', msg);
+			
+			response.end(JSON.stringify(myTableRows[0]));
+		})
+    })	
 	
 app.route("/studentRooms/:userID")
     .get(function(request, response) {

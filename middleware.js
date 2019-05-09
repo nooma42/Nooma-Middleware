@@ -309,6 +309,20 @@ app.route("/studentRooms/:userID")
 			response.end(JSON.stringify(myTableRows[0]));
 		})
     })
+	
+app.route("/setStudentPassword/:userId")
+    .post(function(request, response) {
+		
+		var userId = request.params.userId;
+
+		var newpwd = request.body.newPwd;
+		
+		sequelize.query("EXEC CreateRoom :userID, :newPwd", {replacements: {userID: userId, newPwd: newpwd}}).then(myTableRows => {
+			console.log(myTableRows[0])
+			response.end(JSON.stringify(myTableRows[0]));
+		})
+    })
+	
 http.listen(port,function() {
 	console.log ( " Server listening on port " + port );
 });
