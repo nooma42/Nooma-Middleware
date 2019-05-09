@@ -318,11 +318,11 @@ app.route("/setStudentPassword/:userId")
 		var newpwd = request.body.newPwd;
 		bcrypt.hash(newpwd, saltRounds, function(err, hash) {
 					
-			sequelize.query("EXEC CreateRoom :userID, :newPwd", {replacements: {userID: userId, newPwd: hash}}).then(myTableRows => {
+			sequelize.query("EXEC SetStudentPassword :userID, :newPwd", {replacements: {userID: userId, newPwd: hash}}).then(myTableRows => {
 				console.log(myTableRows[0])
 				response.end(JSON.stringify(myTableRows[0]));
 			})
-		}
+		})
     })
 	
 http.listen(port,function() {
