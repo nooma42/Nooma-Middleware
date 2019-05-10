@@ -318,13 +318,15 @@ app.route("/setStudentPassword/:userId")
 		var newpwd = request.body.newPwd;
 		var oldpwd = request.body.oldPwd;
 		
-		equelize.query("EXEC GetHash2 :userID", { plain: true, replacements: {userID: userId}}).then(myTableRows => {
+		sequelize.query("EXEC GetHash2 :userID", { plain: true, replacements: {userID: userId}}).then(myTableRows => {
 			var storedHash = myTableRows.pwd;
 			
-			bcrypt.compare(pwd, storedHash, function(err, res) {
-			if (res != true)
-				myTableRows[0][0].status = "passwordWrong";
-				response.end(JSON.stringify(myTableRows[0]));
+			bcrypt.compare(oldpwd, storedHash, function(err, res) {
+				console.log("password is " + res);
+			if (res == false)
+				//myTableRows[0] = "passwordWrong";
+				response.end("{\"status\": \"passwordWrong\"}");
+				return;
 			});
 		})
 		
