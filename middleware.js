@@ -324,18 +324,24 @@ app.route("/setStudentPassword/:userId")
 			bcrypt.compare(oldpwd, storedHash, function(err, res) {
 				console.log("password is " + res);
 			if (res == false)
+			{
 				//myTableRows[0] = "passwordWrong";
 				response.end("[{\"status\": \"passwordWrong\"}]");
 				return;
+			}
+			else
+			{
+				bcrypt.hash(newpwd, saltRounds, function(err, hash) {
+					sequelize.query("EXEC SetStudentPassword :userID, :newPwd", {replacements: {userID: userId, newPwd: hash}}).then(myTableRows => {
+						console.log(myTableRows[0])
+						response.end(JSON.stringify(myTableRows[0]));
+					})
+				})				
+			}
 			});
 		})
 		
-		bcrypt.hash(newpwd, saltRounds, function(err, hash) {
-			sequelize.query("EXEC SetStudentPassword :userID, :newPwd", {replacements: {userID: userId, newPwd: hash}}).then(myTableRows => {
-				console.log(myTableRows[0])
-				response.end(JSON.stringify(myTableRows[0]));
-			})
-		})
+
     })
 	
 http.listen(port,function() {
