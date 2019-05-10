@@ -324,12 +324,11 @@ app.route("/setStudentPassword/:userId")
 			bcrypt.compare(pwd, storedHash, function(err, res) {
 			if (res != true)
 				myTableRows[0][0].status = "passwordWrong";
-				response.end(JSON.stringify(myTableRows[0]);
+				response.end(JSON.stringify(myTableRows[0]));
 			});
-		}
+		})
 		
 		bcrypt.hash(newpwd, saltRounds, function(err, hash) {
-			bycrypt.hash(
 			sequelize.query("EXEC SetStudentPassword :userID, :newPwd", {replacements: {userID: userId, newPwd: hash}}).then(myTableRows => {
 				console.log(myTableRows[0])
 				response.end(JSON.stringify(myTableRows[0]));
