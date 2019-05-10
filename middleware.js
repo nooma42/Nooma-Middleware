@@ -325,7 +325,7 @@ app.route("/setStudentPassword/:userId")
 				console.log("password is " + res);
 			if (res == false)
 				//myTableRows[0] = "passwordWrong";
-				response.end("{\"status\": \"passwordWrong\"}");
+				response.end("[{\"status\": \"passwordWrong\"}]");
 				return;
 			});
 		})
