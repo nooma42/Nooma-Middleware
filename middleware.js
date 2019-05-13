@@ -34,12 +34,15 @@ const sequelize = new Sequelize('Nooma', 'nooma42', 'rq4HEe9BGPJ2nQtK', {
 app.use(bodyParser.json()); // for parsing application/json
 
 
+//socket.io handlers
 io.on('connection', function(socket){
     console.log("***** New Socket Connection!!! *****");
+	//handling chat messages
 	socket.on('chat', function(msg){
 		console.log('message: ' + msg);
 		socket.broadcast.emit('chat', msg);
 	});
+	//handling joining of channels 
 	socket.on('channel', function(room) {
 		console.log("channel joining... " + room.channelID);
 		socket.leaveAll(); 
@@ -47,11 +50,13 @@ io.on('connection', function(socket){
     });
 	
 });
-	
+
+//empty response to test url working	
 app.get("/", function(request, response) {
 	response.end("Empty response! Cool! :)");
 });
 
+//gets a specific user
 app.route("/users/:userId")
     .get(function(request, response) {
 		var userId = request.params.userId;
@@ -61,8 +66,8 @@ app.route("/users/:userId")
 		})
     })
 	
+//create new user	
 app.route("/users")
-	//create new user
 	//{"firstName": "Jeff", "lastName": "Gold", "email": "jgold@email.com", "pwd": "X"}
 	.post(function(request, response) { 
 		//hash password
@@ -80,9 +85,9 @@ app.route("/users")
 			})
 		});
 	})
-
+	
+//create new lecturer user
 app.route("/lecturer")
-	//create new lecturer user
 	//{"firstName": "Jeff", "lastName": "Gold", "email": "jgold@email.com", "pwd": "X"}
 	.post(function(request, response) { 
 		//hash password
@@ -101,7 +106,7 @@ app.route("/lecturer")
 		});
 	})
 	
-//for authenticating users passwords
+//for authenticating student users passwords
 app.route("/authenticate")
 	//{"email": "jgold@email.com", "pwd": "X"}
 	.post(function(request, response) {
@@ -125,7 +130,7 @@ app.route("/authenticate")
 		})
 	})
 
-
+//for authenticating lecturer users passwords
 app.route("/authenticateLecturer")
 	//{"email": "jgold@email.com", "pwd": "X"}
 	.post(function(request, response) {
@@ -179,7 +184,8 @@ app.route("/rooms/:lecturerId")
 			response.end(JSON.stringify(myTableRows[0]));
 		})
     })
-	
+
+//deletes room
 app.route("/rooms/:roomId")
     .delete(function(request, response) {
 		
@@ -189,7 +195,8 @@ app.route("/rooms/:roomId")
 			response.end(JSON.stringify(myTableRows[0]));
 		})
     })		
-	
+
+//update room
 app.route("/rooms/:roomId")
     .put(function(request, response) {
 		
@@ -203,6 +210,7 @@ app.route("/rooms/:roomId")
 		})
     })		
 
+//joins a room based on join code
 app.route("/joinRoom")
     .post(function(request, response) {
 		
@@ -234,6 +242,7 @@ app.route("/channels/:roomId")
 		})		
 	})
 
+//deletes a channel
 app.route("/channel/:channelId")
 	.delete(function(request, response) {
 		
@@ -282,7 +291,8 @@ app.route("/channelMessages/:channelId")
 			response.end(JSON.stringify(myTableRows[0]));
 		})
     })	
-
+	
+//deletes a specific message from a channel
 app.route("/channelMessage/:messageId")	
     .delete(function(request, response) {
 		
@@ -300,6 +310,7 @@ app.route("/channelMessage/:messageId")
 		})
     })	
 	
+//gets students joined room list
 app.route("/studentRooms/:userID")
     .get(function(request, response) {
 		
@@ -310,6 +321,7 @@ app.route("/studentRooms/:userID")
 		})
     })
 	
+//updates students password
 app.route("/setStudentPassword/:userId")
     .post(function(request, response) {
 		
